@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -21,11 +21,15 @@ import {
   CircularProgress,
   Checkbox,
   FormControlLabel,
-} from '@mui/material';
-import { Search as SearchIcon, CheckCircle as CheckCircleIcon, BorderAll } from '@mui/icons-material';
-import axios from '../utils/axios';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  CheckCircle as CheckCircleIcon,
+  BorderAll,
+} from "@mui/icons-material";
+import axios from "../utils/axios";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -33,13 +37,13 @@ const Books = () => {
   const [allBooks, setAllBooks] = useState([]);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedBook, setSelectedBook] = useState(null);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [myRequests, setMyRequests] = useState([]);
   const [returnRequestDialogOpen, setReturnRequestDialogOpen] = useState(false);
   const [selectedBookForReturn, setSelectedBookForReturn] = useState(null);
@@ -51,14 +55,14 @@ const Books = () => {
       try {
         setLoading(true);
         const [booksResponse, requestsResponse] = await Promise.all([
-          axios.get('/books'),
-          axios.get('/book-requests/my-requests')
+          axios.get("/books"),
+          axios.get("/book-requests/my-requests"),
         ]);
         setAllBooks(booksResponse.data);
         setMyRequests(requestsResponse.data);
         setTotalPages(Math.ceil(booksResponse.data.length / ITEMS_PER_PAGE));
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -88,72 +92,75 @@ const Books = () => {
 
   const handleRequest = async (bookId) => {
     try {
-      await axios.post('/book-requests', { bookId });
-      setSuccess('Book request submitted successfully');
+      await axios.post("/book-requests", { bookId });
+      setSuccess("Book request submitted successfully");
       setRequestDialogOpen(false);
       // Refresh requests immediately to show pending status
-      const response = await axios.get('/book-requests/my-requests');
+      const response = await axios.get("/book-requests/my-requests");
       setMyRequests(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to submit request');
+      setError(error.response?.data?.message || "Failed to submit request");
     }
   };
 
   const handleReturn = async (bookId) => {
     try {
       await axios.post(`/books/${bookId}/return`);
-      setSuccess('Book returned successfully');
+      setSuccess("Book returned successfully");
       // Refresh both books and requests data
       const [booksResponse, requestsResponse] = await Promise.all([
-        axios.get('/books'),
-        axios.get('/book-requests/my-requests')
+        axios.get("/books"),
+        axios.get("/book-requests/my-requests"),
       ]);
       setAllBooks(booksResponse.data);
       setMyRequests(requestsResponse.data);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to return book');
+      setError(error.response?.data?.message || "Failed to return book");
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
 
   const getRequestStatus = (bookId) => {
-    const request = myRequests.find(req => req.book._id === bookId);
+    const request = myRequests.find((req) => req.book._id === bookId);
     if (!request) return null;
-    
-    if (request.status === 'pending') return 'pending';
-    if (request.status === 'approved' && !request.isReturned) {
-      if (request.returnStatus === 'pending') return 'return_pending';
-      if (request.returnStatus === 'approved') return 'return_approved';
-      return 'approved';
+
+    if (request.status === "pending") return "pending";
+    if (request.status === "approved" && !request.isReturned) {
+      if (request.returnStatus === "pending") return "return_pending";
+      if (request.returnStatus === "approved") return "return_approved";
+      return "approved";
     }
     return null;
   };
 
   const isBookBorrowedByMe = (book) => {
     if (!user?.id) return false;
-    const request = myRequests.find(req => 
-      req.book._id === book._id && 
-      req.status === 'approved' && 
-      !req.isReturned &&
-      req.returnStatus !== 'pending'
+    const request = myRequests.find(
+      (req) =>
+        req.book._id === book._id &&
+        req.status === "approved" &&
+        !req.isReturned &&
+        req.returnStatus !== "pending"
     );
     return !!request;
   };
 
   const canRequestBook = (book) => {
     if (!user) return false;
-    
+
     // Check if user has any request for this book (pending or approved)
-    const request = myRequests.find(req => 
-      req.book._id === book._id && 
-      (req.status === 'pending' || (req.status === 'approved' && !req.isReturned))
+    const request = myRequests.find(
+      (req) =>
+        req.book._id === book._id &&
+        (req.status === "pending" ||
+          (req.status === "approved" && !req.isReturned))
     );
-    
+
     // Allow requesting if:
     // 1. Book has available copies
     // 2. User doesn't have any active request (pending or approved)
@@ -163,21 +170,24 @@ const Books = () => {
   const handleReturnRequest = async (bookId) => {
     try {
       await axios.post(`/book-requests/${bookId}/return-request`);
-      setSuccess('Return request submitted successfully');
+      setSuccess("Return request submitted successfully");
       setReturnRequestDialogOpen(false);
       // Refresh requests to show new status
-      const response = await axios.get('/book-requests/my-requests');
+      const response = await axios.get("/book-requests/my-requests");
       setMyRequests(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to submit return request');
+      setError(
+        error.response?.data?.message || "Failed to submit return request"
+      );
     }
   };
 
   const hasPendingRequest = (bookId) => {
-    return myRequests.some(request => 
-      request.book._id === bookId && 
-      request.status === 'pending' && 
-      !request.returnStatus
+    return myRequests.some(
+      (request) =>
+        request.book._id === bookId &&
+        request.status === "pending" &&
+        !request.returnStatus
     );
   };
 
@@ -189,35 +199,39 @@ const Books = () => {
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/book-requests', {
+      await axios.post("/book-requests", {
         bookId: selectedBook._id,
-        purpose: e.target.purpose.value
+        purpose: e.target.purpose.value,
       });
-      setSuccess('Book request submitted successfully');
+      setSuccess("Book request submitted successfully");
       setRequestDialogOpen(false);
       // Refresh requests immediately to show pending status
-      const response = await axios.get('/book-requests/my-requests');
+      const response = await axios.get("/book-requests/my-requests");
       setMyRequests(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to submit request');
+      setError(error.response?.data?.message || "Failed to submit request");
     }
   };
 
   const handlePickupStatusChange = async (requestId, isPickedUp) => {
     try {
-      await axios.put(`/book-requests/${requestId}/update-pickup`, { isPickedUp });
-      setSuccess('Pickup status updated successfully');
+      await axios.put(`/book-requests/${requestId}/update-pickup`, {
+        isPickedUp,
+      });
+      setSuccess("Pickup status updated successfully");
       // Refresh requests
-      const response = await axios.get('/book-requests/my-requests');
+      const response = await axios.get("/book-requests/my-requests");
       setMyRequests(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to update pickup status');
+      setError(
+        error.response?.data?.message || "Failed to update pickup status"
+      );
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -238,12 +252,16 @@ const Books = () => {
           Book Catalog
         </Typography>
         {success && (
-          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+          <Alert
+            severity="success"
+            sx={{ mb: 2 }}
+            onClose={() => setSuccess("")}
+          >
             {success}
           </Alert>
         )}
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
             {error}
           </Alert>
         )}
@@ -273,116 +291,151 @@ const Books = () => {
           const isBorrowedByMe = isBookBorrowedByMe(book);
           const canRequest = canRequestBook(book);
           return (
-            <Grid item xs={6} key={book._id}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'row' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {book.title}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    {book.author}
-                  </Typography>
-                 
-                  <Box sx={{ mt: 2 }}>
-                    {book.availableCopies === 0 ? (
-                      <Chip
-                        label="Out of Stock"
-                        color="error"
-                        size="small"
-                      />
-                    ) : (
-                      <Chip
-                        label={`Available: ${book.availableCopies}/${book.copies}`}
-                        color="success"
-                        size="small"
-                      />
-                    )}
-                    {requestStatus && (
-                      <>
+            <Grid item xs={12} sm={6} key={book._id}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  width: "100%",
+                  maxWidth: 350,
+                  p: 3
+                }}
+              >
+                {/* Book Image */}
+                <Box
+                  component="img"
+                  src={book.imageUrl || "'https://via.placeholder.com/120x180.png?text=No+Cover"}
+                  alt={book.title}
+                  sx={{
+                    width: 120,
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRight: "1px solid #eee",
+                  }}
+                />
+
+                {/* Book Info */}
+                <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6" gutterBottom sx={{textOverflow: 'ellipsis'}}>
+                      {book.title}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      {book.author}
+                    </Typography>
+
+                    <Box sx={{ mt: 2 }}>
+                      {book.availableCopies === 0 ? (
+                        <Chip label="Out of Stock" color="error" size="small" />
+                      ) : (
                         <Chip
-                          label={
-                            requestStatus === 'pending' ? 'Request Pending' :
-                            requestStatus === 'approved' ? 'Approved' :
-                            requestStatus === 'return_pending' ? 'Return Pending' :
-                            'Return Approved'
-                          }
-                          color={
-                            requestStatus === 'pending' ? 'warning' :
-                            requestStatus === 'approved' ? 'success' :
-                            requestStatus === 'return_pending' ? 'warning' :
-                            'success'
-                          }
+                          label={`Available: ${book.availableCopies}/${book.copies}`}
+                          color="success"
                           size="small"
-                          sx={{ ml: 1 }}
                         />
-                        {requestStatus === 'approved' && (
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={myRequests.find(req => 
-                                  req.book._id === book._id
-                                )?.isPickedUp || false}
-                                onChange={(e) => handlePickupStatusChange(
-                                  myRequests.find(req => req.book._id === book._id)._id,
-                                  e.target.checked
-                                )}
-                                disabled={myRequests.find(req => 
-                                  req.book._id === book._id
-                                )?.isReturned}
-                              />
+                      )}
+
+                      {requestStatus && (
+                        <>
+                          <Chip
+                            label={
+                              requestStatus === "pending"
+                                ? "Request Pending"
+                                : requestStatus === "approved"
+                                ? "Approved"
+                                : requestStatus === "return_pending"
+                                ? "Return Pending"
+                                : "Return Approved"
                             }
-                            label="Picked Up"
+                            color={
+                              requestStatus === "pending" ||
+                              requestStatus === "return_pending"
+                                ? "warning"
+                                : "success"
+                            }
+                            size="small"
                             sx={{ ml: 1 }}
                           />
-                        )}
-                      </>
+                          {requestStatus === "approved" && (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={
+                                    myRequests.find(
+                                      (req) => req.book._id === book._id
+                                    )?.isPickedUp || false
+                                  }
+                                  onChange={(e) =>
+                                    handlePickupStatusChange(
+                                      myRequests.find(
+                                        (req) => req.book._id === book._id
+                                      )._id,
+                                      e.target.checked
+                                    )
+                                  }
+                                  disabled={
+                                    myRequests.find(
+                                      (req) => req.book._id === book._id
+                                    )?.isReturned
+                                  }
+                                />
+                              }
+                              label="Picked Up"
+                              sx={{ ml: 1 }}
+                            />
+                          )}
+                        </>
+                      )}
+                    </Box>
+                  </CardContent>
+
+                  {/* Action Buttons */}
+                  <CardActions>
+                    {isBorrowedByMe ? (
+                      <Button
+                        color="primary"
+                        onClick={() => {
+                          setSelectedBookForReturn(book);
+                          setReturnRequestDialogOpen(true);
+                        }}
+                      >
+                        Request Return
+                      </Button>
+                    ) : canRequest ? (
+                      <Button
+                        color="primary"
+                        onClick={() => handleRequestClick(book)}
+                      >
+                        Request Book
+                      </Button>
+                    ) : (
+                      <Button variant="contained" color="primary" disabled>
+                        {requestStatus === "pending"
+                          ? "Request Pending"
+                          : "Not Available"}
+                      </Button>
                     )}
-                  </Box>
-                </CardContent>
-                <CardActions>
-                  {isBorrowedByMe ? (
-                    <Button
-                      color='primary'
-                      onClick={() => {
-                        setSelectedBookForReturn(book);
-                        setReturnRequestDialogOpen(true);
-                      }}
-                    >
-                      Request Return
-                    </Button>
-                  ) : canRequest ? (
-                    <Button
-                      color='primary'
-                      onClick={() => handleRequestClick(book)}
-                    >
-                      Request Book
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color='primary'
-                      disabled
-                    >
-                      {requestStatus === 'pending' ? 'Request Pending' : 'Not Available'}
-                    </Button>
-                  )}
-                </CardActions>
+                  </CardActions>
+                </Box>
               </Card>
             </Grid>
           );
         })}
       </Grid>
 
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
         <Pagination
           count={totalPages}
           page={page}
           onChange={(event, value) => setPage(value)}
-          color='primary'
+          color="primary"
         />
       </Box>
 
-      <Dialog open={requestDialogOpen} onClose={() => setRequestDialogOpen(false)}>
+      <Dialog
+        open={requestDialogOpen}
+        onClose={() => setRequestDialogOpen(false)}
+      >
         <DialogTitle>Request Book</DialogTitle>
         <form onSubmit={handleRequestSubmit}>
           <DialogContent>
@@ -408,22 +461,25 @@ const Books = () => {
         </form>
       </Dialog>
 
-      <Dialog 
-        open={returnRequestDialogOpen} 
+      <Dialog
+        open={returnRequestDialogOpen}
         onClose={() => setReturnRequestDialogOpen(false)}
       >
         <DialogTitle>Request Book Return</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to request returning "{selectedBookForReturn?.title}"?
-            This request will need to be approved by a librarian.
+            Are you sure you want to request returning "
+            {selectedBookForReturn?.title}"? This request will need to be
+            approved by a librarian.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setReturnRequestDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setReturnRequestDialogOpen(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => handleReturnRequest(selectedBookForReturn?._id)}
-            color='primary'
+            color="primary"
           >
             Confirm
           </Button>
@@ -433,4 +489,4 @@ const Books = () => {
   );
 };
 
-export default Books; 
+export default Books;

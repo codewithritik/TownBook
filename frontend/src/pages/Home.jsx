@@ -42,7 +42,7 @@ const Home = () => {
       title: 'Reservation History',
       description: 'Review your past book and room reservations ',
       icon: <AccessTimeIcon sx={{ fontSize: 40, color: '#008D86' }} />,
-      path: '/rooms',
+      path: '/reservations',
     },
   ];
 
